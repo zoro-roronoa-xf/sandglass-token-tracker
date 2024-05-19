@@ -5,13 +5,13 @@ import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import Decimal from "decimal.js";
 import fs from "fs";
 
-const network = "";
-
-const connection = new Connection(network, "processed");
+const RPC_URL = "https://api.mainnet-beta.solana.com";
+const SANDGLASS_MSOL_MARKET_ID = new PublicKey("");
+const OUTPUT_FILENAME = "output.csv";
 
 const SANDGLASS_PROGRAM_ID = new PublicKey("SANDsy8SBzwUE8Zio2mrYZYqL52Phr2WQb9DDKuXMVK");
-const SANDGLASS_MSOL_MARKET_ID = new PublicKey("");
 
+const connection = new Connection(RPC_URL, "processed");
 const coder = new BorshAccountsCoder(IDL);
 type MarketState = IdlAccounts<Sandglass>["market"];
 type SGState = IdlAccounts<Sandglass>["sandglassAccount"];
@@ -223,7 +223,7 @@ async function main() {
 
   const csvContent = convertToCSV(resultList);
 
-  fs.writeFileSync("output.csv", csvContent);
+  fs.writeFileSync(OUTPUT_FILENAME, csvContent);
 }
 
 main();
