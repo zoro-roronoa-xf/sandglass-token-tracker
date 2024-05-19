@@ -6,7 +6,7 @@ import Decimal from "decimal.js";
 import fs from "fs";
 
 const RPC_URL = "https://api.mainnet-beta.solana.com";
-const SANDGLASS_MSOL_MARKET_ID = new PublicKey("");
+const SANDGLASS_MARKET_ID = new PublicKey("");
 const OUTPUT_FILENAME = "output.csv";
 
 const SANDGLASS_PROGRAM_ID = new PublicKey("SANDsy8SBzwUE8Zio2mrYZYqL52Phr2WQb9DDKuXMVK");
@@ -60,7 +60,7 @@ async function getSandglassAccount(
 
     if (sandglassAccount.userAddress.toString() === marketSigner.toString()) continue;
 
-    if (sandglassAccount.marketAccount.toString() === SANDGLASS_MSOL_MARKET_ID.toString()) {
+    if (sandglassAccount.marketAccount.toString() === SANDGLASS_MARKET_ID.toString()) {
       if (Number(sandglassAccount.stakeInfo.stakeYtAmount.toString()) !== 0) {
         const userYtStakeAmount = new Decimal(sandglassAccount.stakeInfo.stakeYtAmount.toString());
         result = setResultData(result, sandglassAccount.userAddress.toString(), userYtStakeAmount.div(tokenDecimals));
@@ -197,7 +197,7 @@ function convertToCSV(result: ResultListState[]) {
 }
 
 async function main() {
-  const sandglassMarket = await getMarket(SANDGLASS_MSOL_MARKET_ID);
+  const sandglassMarket = await getMarket(SANDGLASS_MARKET_ID);
 
   const ytPoolAmount = await getTokenAmount(sandglassMarket.poolYtTokenAccount);
   const lpMintSupply = await getMintSupply(sandglassMarket.tokenLpMintAddress);
