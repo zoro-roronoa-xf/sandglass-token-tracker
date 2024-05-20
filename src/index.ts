@@ -39,6 +39,12 @@ function setResultData(data: ResultListState[], userAddress: string, amount: Dec
   return data;
 }
 
+function removeResultData(data: ResultListState[], userAddress: string) {
+  const index = data.findIndex((result) => result.userAddress === userAddress);
+  data.splice(index, 1);
+  return data;
+}
+
 async function getSandglassAccount(
   result: ResultListState[],
   marketSigner: PublicKey,
@@ -153,6 +159,34 @@ async function getLpTokenAmount(
   return result;
 }
 
+async function updateFeeAccount(
+  result: ResultListState[],
+  feeLpTokenAccount: PublicKey,
+  ytPoolAmount: Decimal,
+  lpMintSupply: Decimal,
+  tokenDecimals: number
+) {
+  const accountInfo = await connection.getParsedAccountInfo(feeLpTokenAccount);
+
+  //@ts-ignore
+  const feeAccountOwner = accountInfo.value?.data.parsed.info.owner;
+
+  for (const data of result) {
+    if (data.userAddress === feeAccountOwner.toString()) {
+      const initYtTokenAmount = ytPoolAmount.mul(new Decimal(1).mul(tokenDecimals)).div(lpMintSupply).floor();
+      const newAmount = new Decimal(data.ytTokenAmount).minus(initYtTokenAmount.div(tokenDecimals));
+      if (newAmount.eq(0)) {
+        removeResultData(result, data.userAddress);
+      } else {
+        result = setResultData(result, data.userAddress, newAmount);
+      }
+      break;
+    }
+  }
+
+  return result;
+}
+
 async function getMarket(address: PublicKey) {
   const accountInfo = await connection.getAccountInfo(address);
   const data = Buffer.from(accountInfo!.data);
@@ -216,6 +250,14 @@ async function main() {
     resultList,
     sandglassMarket.marketSigner,
     sandglassMarket.tokenLpMintAddress,
+    ytPoolAmount,
+    lpMintSupply,
+    Number(sandglassMarket.marketConfig.priceBase.toString())
+  );
+
+  resultList = await updateFeeAccount(
+    resultList,
+    sandglassMarket.feeLpTokenAccount,
     ytPoolAmount,
     lpMintSupply,
     Number(sandglassMarket.marketConfig.priceBase.toString())
