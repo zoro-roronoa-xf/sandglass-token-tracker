@@ -21,19 +21,26 @@ type ResultListState = {
   ytTokenAmount: Decimal;
 };
 
-function setResultData(data: ResultListState[], userAddress: string, amount: Decimal) {
+function setResultData(data: ResultListState[], userAddress: string, amount: Decimal, update: boolean = false) {
   const index = data.findIndex((result) => result.userAddress === userAddress);
 
-  if (index === -1) {
-    data = [
-      {
-        userAddress: userAddress,
-        ytTokenAmount: amount,
-      },
-      ...data,
-    ];
+  if (update) {
+    if (index === -1) {
+      return data;
+    }
+    data[index].ytTokenAmount = amount;
   } else {
-    data[index].ytTokenAmount = data[index].ytTokenAmount.add(amount);
+    if (index === -1) {
+      data = [
+        {
+          userAddress: userAddress,
+          ytTokenAmount: amount,
+        },
+        ...data,
+      ];
+    } else {
+      data[index].ytTokenAmount = data[index].ytTokenAmount.add(amount);
+    }
   }
 
   return data;
@@ -178,7 +185,7 @@ async function updateFeeAccount(
       if (newAmount.eq(0)) {
         removeResultData(result, data.userAddress);
       } else {
-        result = setResultData(result, data.userAddress, newAmount);
+        result = setResultData(result, data.userAddress, newAmount, true);
       }
       break;
     }
